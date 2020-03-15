@@ -2,5 +2,15 @@
 namespace Bang;
 
 class Column {
-	
+    function report_line($width = 65) {
+        $result = "";
+        $result .= "║ ";
+        $result .= str_pad($this->name, $width-31, " ");
+        $result .= "│ ";
+        $result .= str_pad($this->type, 21, " ");
+        $result .= "│ ";
+        $result .= (!empty($this->pk)) ? "PK " : "   ";
+        $result .= "║";
+        return $result;
+    }
 }

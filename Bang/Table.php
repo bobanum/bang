@@ -95,36 +95,55 @@ class Table {
 	}
 	function go() {
 		$name = $this->name;
-		$this->messages[] = "Processing Table '$name'.";
-		foreach ($this->columns as $column) {
-			$this->messages[] = "| ".str_pad($column->name, 30, " ").
-			"| ".str_pad($column->type, 30, " ")."|";
-		}
+		$this->messages[] = "• Processing Table '$name'.";
+		$this->messages[] = $this->report();
 		$this->processModel();
 		$this->processController();
 		$this->processViews();
 	}
-	function report_header($width=65) {
-		$result = "+".str_repeat("-", $width-2)."+\r\n";
-		$result .= "| ".str_pad($table->name, $width-4, " ")." |\r\n";
-		$result .= "+".str_repeat("-", 30)."+".str_repeat("-", 30)."+\r\n";
+	function report($width=65) {
+		//║╗╝╚╔═╣╠╬╪╤╧
+		$hr = "╔".str_repeat("═", $width-30)."";
+		$hr .= "╤".str_repeat("═", 22)."";
+		$hr .= "╤".str_repeat("═", 4)."";
+		$hr .= "╗";
+		$result[] = $hr;
+		$h = "";
+		$h .= "║ ".str_pad("COLUMN NAME", $width-31, " ");
+		$h .= "│ ".str_pad("TYPE", 21, " ");
+		$h .= "│ PK ║";
+		$result[] = $h;
+		$hr = "╠".str_repeat("═", $width-30)."";
+		$hr .= "╪".str_repeat("═", 22)."";
+		$hr .= "╪".str_repeat("═", 4)."";
+		$hr .= "╣";
+		$result[] = $hr;
+		foreach ($this->columns as $column) {
+			$result[] = $column->report_line();
+		}
+		$hr = "╚".str_repeat("═", $width-30)."";
+		$hr .= "╧".str_repeat("═", 22)."";
+		$hr .= "╧".str_repeat("═", 4)."";
+		$hr .= "╝";
+		$result[] = $hr;
+		$result = implode("\r\n", $result);
 		return $result;
 	}
 	public function processModel() {
 		$path = "App/{$this->model}.php";
 		$this->bang->applyTemplate($this, "model", $path);
-		$this->messages[] = "Model '{$this->model}' created at '{$path}'.";
+		$this->messages[] = "• Creating file 🗎'{$path}' with Model 🖼'{$this->model}' from template.";
 	}
 	public function processController() {
 		$path = "App/Http/Controllers/{$this->controller}.php";
 		$this->bang->applyTemplate($this, "controller", $path);
-		$this->messages[] = "Controller '$this->controller' created at '$path'.";
+		$this->messages[] = "• Creating file 🗎'{$path}' with Controller 🖰'$this->controller' from template.";
 	}
 	public function processViews()
 	{
 		$path = "resources/views/{$this->sing}/index.blade.php";
 		$this->bang->applyTemplate($this, "view_index", $path);
-		$this->messages[] = "View '{$this->sing}.index' created at '$path'.";
+		$this->messages[] = "• Creating file 🗎'{$path}' with View 👁'{$this->sing}.index' from template.";
 	}
 
 }
