@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class $table->model extends Model
 {
-{$table->forcedName}{$table->fillable}{$table->hasMany}{$table->BelongsTo}{$table->BelongsToMany}
+{$table->forcedName}
+{$table->defaultValues}
+{$table->fillable}
+{$table->hasMany}
+{$table->BelongsTo}
+{$table->BelongsToMany}
 }
 EOT;

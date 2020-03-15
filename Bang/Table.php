@@ -57,6 +57,17 @@ class Table {
 			return "\tprotected \$table = '$this->name';\r\n";
 		}
 	}
+	function get_defaultValues() {
+		$result = [];
+		$result[] = "\tprotected \$attributes = [";
+		foreach($this->columns as $column) {
+			if ($column->dflt_value !== null) {
+				$result[] = "\t\t'{$column->name}' => {$column->dflt_value},";
+			}
+		}
+		$result[] = "\t];";	
+		return implode("\r\n", $result);
+	}
 	function get_fillable() {
 		$result = $this->columns;
 		$result = array_map(function ($col) { return $col->name; }, $result);
