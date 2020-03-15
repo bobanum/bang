@@ -66,7 +66,6 @@ class Bang {
 		}
 		echo implode("\r\n", $this->messages);
 	}
-	//SCRAPE
 	public function applyTemplate($table, $template, $path) {
 		$path = dirname($this->db).'/'.$this->results.'/'.$path;
 		if (!file_exists(dirname($path))) {

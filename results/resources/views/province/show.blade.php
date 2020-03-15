@@ -1,13 +1,25 @@
-@extends('layout.index')
-@section('contenu')
-<h1>Liste des provinces</h1>
-@if(count($provinces) > 0)
-<div class="provinces">
-	@foreach($provinces as $province)
-	<div><a href="{{action('ProvinceController@show', $province)}}">{{$province->nom}}</a></div>
-	@endforeach
+<h1>{{$province->nom}}</h1>
+<div class="columns">
+	
+@component(province.show.column, ['label'=>'id'])
+{{$province->id}}
+@endcomponent
+
+@component(province.show.column, ['label'=>'pay_id'])
+{{$province->pay_id}}
+@endcomponent
+
+@component(province.show.column, ['label'=>'nom'])
+{{$province->nom}}
+@endcomponent
+
+@component(province.show.column, ['label'=>'superficie'])
+{{$province->superficie}}
+@endcomponent
+	@component(province.show.column, ['label'=>'nom'])
+	{{$province->nom}}
+	@endcomponent
+	@component(province.show.column, ['label'=>'auperficie'])
+	{{$province->superficie}}
+	@endcomponent
 </div>
-@else
-<div>Il n'y a aucun provinces.</div>
-@endif
-@endsection

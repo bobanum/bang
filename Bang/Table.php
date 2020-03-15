@@ -103,6 +103,17 @@ class Table {
 		$result = $this->sing;
 		return $result;
 	}
+	function get_show_columns() {
+		$result = [];
+		foreach($this->columns as $column) {
+			$result[] = '';
+			$result[] = '@component('.$this->sing.'.show.column, [\'label\'=>\''.$column->name.'\'])';
+			$result[] = '{{$'.$this->sing.'->'.$column->name.'}}';
+			$result[] = '@endcomponent';
+		}
+
+		return implode("\r\n",$result);
+	}
 	function get_label() {
 		// $result = array_values($this->columns)[2]->name; //TODO Find best column (1st text...)
 		foreach ($this->columns as $column) {
