@@ -5,34 +5,37 @@ use PDO;
 use Exception;
 
 class Table {
+	use GetSet;
 	public $_columns = null;
+	public $_foreignKeys = null;
 	public $messages = [];
 	public $bang = null;
 	function __construct()
 	{
 		
 	}
-	function __get($name)
-	{
-		if(substr($name, -3) === "Var") {
-			$name = substr($name, 0, -3);
-			return '$'.$this->$name;
-		}
-		$get_name = "get_$name";
-		if (method_exists($this, $get_name)) {
-			return $this->$get_name();
-		}
-		throw new Exception("Bad property name '$name'.");
-	}
 	function get_columns() {
 		if (!$this->_columns) {
 			$stmt = $this->bang->execute("PRAGMA table_info({$this->name})");
-			$this->_columns = $stmt->fetchAll(PDO::FETCH_CLASS, "Bang\Column");
-			foreach ($this->_columns as $column) {
+			$columns = $stmt->fetchAll(PDO::FETCH_CLASS, "Bang\Column");
+			foreach ($columns as $column) {
+				$this->_columns[$column->name] = $column;
 				$column->table = $this;
 			} 
 		}
 		return $this->_columns;
+	}
+	function get_foreignKeys() {
+		if (!$this->_foreignKeys) {
+			$stmt = $this->bang->execute("PRAGMA foreign_key_list({$this->name})");
+			$foreignKeys = $stmt->fetchAll(PDO::FETCH_OBJ);
+			$this->_foreignKeys = [];
+			foreach ($foreignKeys as $foreignKey) {
+				$this->_foreignKeys[$foreignKey->from] = $foreignKey;
+				$foreignKey->tableObj = $this;
+			} 
+		}
+		return $this->_foreignKeys;
 	}
 	function get_model() {
 		$result = $this->name;
@@ -51,7 +54,7 @@ class Table {
 		if (substr($this->name, -1) === "s") {
 			return "";
 		} else {
-			return "protected \$table = '$this->name';\r\n\t";
+			return "\tprotected \$table = '$this->name';\r\n";
 		}
 	}
 	function get_fillable() {
@@ -59,7 +62,7 @@ class Table {
 		$result = array_map(function ($col) { return $col->name; }, $result);
 		$result = array_filter($result, function ($col) { return $col !== "id"; });
 		$result = implode("', '", $result);
-		$result = "protected \$fillable = ['$result'];\r\n\t";
+		$result = "\tprotected \$fillable = ['$result'];\r\n";
 		return $result;
 	}
 	function get_normalized() {
@@ -90,7 +93,33 @@ class Table {
 		return $result;
 	}
 	function get_label() {
-		$result = $this->columns[2]->name;
+		$result = array_values($this->columns)[2]->name; //TODO Find best column (1st text...)
+		return $result;
+	}
+	function get_hasMany() {
+		$result = [];
+		$tables = $this->bang->hasMany($this->name);
+		foreach ($tables as $table) {
+			$result[] = "\t/** */";
+			$result[] = "\tpublic function {$table->sing}() {";
+			$result[] = "\t\treturn \$this->belongsTo('App\\$table->model');";
+			$result[] = "\t}";	
+		}
+		return implode("\r\n", $result);
+	}
+	function get_belongsTo() {
+		$result = [];
+		foreach($this->foreignKeys as $foreignKey) {
+			$foreignTable = $this->bang->tables[$foreignKey->table];
+			$result[] = "\t/** */";
+			$result[] = "\tpublic function {$foreignTable->sing}() {";
+			$result[] = "\t\treturn \$this->belongsTo('App\\$foreignTable->model');";
+			$result[] = "\t}";
+		}
+		return implode("\r\n", $result);
+	}
+	function get_belongsToMany() {
+		$result = "";
 		return $result;
 	}
 	function go() {
@@ -132,18 +161,18 @@ class Table {
 	public function processModel() {
 		$path = "App/{$this->model}.php";
 		$this->bang->applyTemplate($this, "model", $path);
-		$this->messages[] = "• Creating file 🗎'{$path}' with Model 🖼'{$this->model}' from template.";
+		$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with Model 🖼'{$this->model}' from template.";
 	}
 	public function processController() {
 		$path = "App/Http/Controllers/{$this->controller}.php";
 		$this->bang->applyTemplate($this, "controller", $path);
-		$this->messages[] = "• Creating file 🗎'{$path}' with Controller 🖰'$this->controller' from template.";
+		$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with Controller 🖰'$this->controller' from template.";
 	}
 	public function processViews()
 	{
 		$path = "resources/views/{$this->sing}/index.blade.php";
 		$this->bang->applyTemplate($this, "view_index", $path);
-		$this->messages[] = "• Creating file 🗎'{$path}' with View 👁'{$this->sing}.index' from template.";
+		$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with View 👁'{$this->sing}.index' from template.";
 	}
 
 }

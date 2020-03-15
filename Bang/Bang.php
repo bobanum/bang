@@ -3,6 +3,7 @@ namespace Bang;
 use PDO;
 error_reporting(E_ALL);
 class Bang {
+	use GetSet;
 	public $exclude = ['sqlite_sequence'];
 	protected $db;
 	public $messages = [];
@@ -13,18 +14,6 @@ class Bang {
 	{
 		$this->db = realpath(dirname($_SERVER['SCRIPT_FILENAME'])."/".$db);
 	}
-	function __get($name)
-	{
-		if(substr($name, -3) === "Var") {
-			$name = substr($name, 0, -3);
-			return '$'.$this->$name;
-		}
-		$get_name = "get_$name";
-		if (method_exists($this, $get_name)) {
-			return $this->$get_name();
-		}
-		throw new \Exception("Bad property name '$name'.");
-	}
 	function get_tables() {
 		if (!$this->_tables) {
 			$pdo = $this->connect();
@@ -33,9 +22,9 @@ class Bang {
 			$tables = $stmt->fetchAll(PDO::FETCH_CLASS, "Bang\Table");
 			$tables = array_filter($tables, function ($table) { return !in_array($table->name, $this->exclude);});
 			foreach ($tables as $table) {
+				$this->_tables[$table->name] = $table;
 				$table->bang = $this;
 			} 
-			$this->_tables = $tables;
 		}
 		return $this->_tables;
 	}
@@ -51,6 +40,18 @@ class Bang {
 		$pdo = $this->connect();
 		$stmt = $pdo->prepare($sql);
 		return $stmt;
+	}
+	public function hasMany($table) {
+		$result = [];
+		foreach($this->tables as $table2) {
+			foreach($table2->foreignKeys as $foreignKey) {
+				if ($foreignKey->table === $table) {
+					$result[$table2->name] = $table2;
+					break;
+				}
+			}
+		}
+		return $result;
 	}
 	public function execute($sql, $data=[]) {
 		$pdo = $this->connect();

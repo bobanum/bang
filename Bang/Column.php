@@ -2,6 +2,11 @@
 namespace Bang;
 
 class Column {
+	use GetSet;
+    function get_references() {
+        
+    }
+
     function report_line($width = 65) {
         $result = "";
         $result .= "║ ";
@@ -13,4 +18,5 @@ class Column {
         $result .= "║";
         return $result;
     }
+
 }
