@@ -1,5 +1,5 @@
 <?php
-$tmpl = <<<EOT
+return <<<EOT
 @extends('layout.index')
 @section('contenu')
 <h1>Liste des {$table->name}</h1>

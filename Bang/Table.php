@@ -174,21 +174,36 @@ class Table {
 		$result = implode("\r\n", $result);
 		return $result;
 	}
+	public function template_path($file = "") {
+		$result = __DIR__."/../templates";
+		if ($file) {
+			$result .= "/" . $file;
+		}
+		return $result;
+	}
 	public function processModel() {
 		$path = "App/{$this->model}.php";
-		$this->bang->applyTemplate($this, "model", $path);
+		$template = $this->template_path("model.php");
+		$this->bang->applyTemplate($this, $template, $path);
 		$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with Model 🖼'{$this->model}' from template.";
 	}
 	public function processController() {
 		$path = "App/Http/Controllers/{$this->controller}.php";
-		$this->bang->applyTemplate($this, "controller", $path);
+		$template = $this->template_path("controller.php");
+		$this->bang->applyTemplate($this, $template, $path);
 		$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with Controller 🖰'$this->controller' from template.";
 	}
 	public function processViews()
 	{
-		$path = "resources/views/{$this->sing}/index.blade.php";
-		$this->bang->applyTemplate($this, "view_index", $path);
-		$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with View 👁'{$this->sing}.index' from template.";
+		$views = glob(__DIR__."/../templates/view_*.*");
+		foreach ($views as $view) {
+			$viewName = substr($view, strlen(__DIR__)+19, -4);
+			$viewPath = str_replace("_", "/", $viewName);
+			$path = "resources/views/{$this->sing}/{$viewPath}.blade.php";
+			$this->bang->applyTemplate($this, $view, $path);
+			$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with View 👁'{$this->sing}.index' from template.";
+
+		}
 	}
 
 }

@@ -1,5 +1,5 @@
 <?php
-$tmpl = <<<EOT
+return <<<EOT
 <?php
 
 namespace App\Http\Controllers;

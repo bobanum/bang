@@ -67,13 +67,12 @@ class Bang {
 		echo implode("\r\n", $this->messages);
 	}
 	//SCRAPE
-	public function applyTemplate($table, $name, $path) {
+	public function applyTemplate($table, $template, $path) {
 		$path = dirname($this->db).'/'.$this->results.'/'.$path;
 		if (!file_exists(dirname($path))) {
 			mkdir(dirname($path), 0777, true);
 		}
-		$file = "templates/{$name}.php";
-		require $file;
+		$tmpl = require $template;
 		file_put_contents($path, $tmpl);
 	}
 }
