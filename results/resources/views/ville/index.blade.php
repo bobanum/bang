@@ -4,7 +4,7 @@
 @if(count($villes) > 0)
 <div class="villes">
 	@foreach($villes as $ville)
-	<div><a href="{{action('VilleController@show', $ville)}}">{{$ville->pays_id}}</a></div>
+	<div><a href="{{action('VilleController@show', $ville)}}">{{$ville->nom}}</a></div>
 	@endforeach
 </div>
 @else

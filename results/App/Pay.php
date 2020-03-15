@@ -15,7 +15,7 @@ class Pay extends Model
 		'nomHabitants' => '',
 		'superficie' => 0,
 	];
-	protected $fillable = ['ISO', 'nom', 'nom2', 'continent', 'capitale', 'population', 'nomHabitants', 'superficie', 'densite', 'popUrbaine', 'frontieres', 'cotes', 'eauxTerritoriales', 'heure', 'moisFroids', 'moisFroidsTemp', 'moisChaud', 'moisChaudsTemp'];
+	protected $fillable = ['nom', 'ISO', 'nom2', 'continent', 'capitale', 'population', 'nomHabitants', 'superficie', 'densite', 'popUrbaine', 'frontieres', 'cotes', 'eauxTerritoriales', 'heure', 'moisFroids', 'moisFroidsTemp', 'moisChaud', 'moisChaudsTemp'];
 
 	/** */
 	public function province() {

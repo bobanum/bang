@@ -104,7 +104,12 @@ class Table {
 		return $result;
 	}
 	function get_label() {
-		$result = array_values($this->columns)[2]->name; //TODO Find best column (1st text...)
+		// $result = array_values($this->columns)[2]->name; //TODO Find best column (1st text...)
+		foreach ($this->columns as $column) {
+			if (strpos(strtolower($column->type), "text") !== false || strpos(strtolower($column->type), "char") !== false) {
+				return $column->name;
+			}
+		}
 		return $result;
 	}
 	function get_hasMany() {
