@@ -7,12 +7,18 @@ class Bang {
 	public $exclude = ['sqlite_sequence'];
 	protected $db;
 	public $messages = [];
-	public $results = "./results";
+	public $results = "..";
 	protected $_pdo = null;
 	protected $_tables = null;
 	function __construct($db)
 	{
-		$this->db = realpath(dirname($_SERVER['SCRIPT_FILENAME'])."/".$db);
+		if (realpath($db)) {
+			$this->db = $db;
+			
+		} else {
+			$this->db = realpath(dirname($_SERVER['SCRIPT_FILENAME'])."/".$db);
+
+		}
 	}
 	function get_tables() {
 		if (!$this->_tables) {
@@ -66,8 +72,29 @@ class Bang {
 		}
 		echo implode("\r\n", $this->messages);
 	}
+	public function output_path($file="") {
+		//TODO Stop assuming db in database folder
+		$result = dirname($this->db);
+		$result = dirname($result);
+		$result = realpath($result);
+		if ($file) {
+			$result .= "/".$file;
+		}
+		return $result;
+	}
+	public function phar_path($file="") {
+		$result = basename($this);
+		//TODO Check for non phar path
+		$result = substr($result, 7);
+		$result = dirname($result);
+		$result = dirname($result);
+		$result = realpath($result);
+		if ($file) {
+			$result .= "/".$file;
+		}
+		return $result;
+	}
 	public function applyTemplate($table, $template, $path) {
-		$path = dirname($this->db).'/'.$this->results.'/'.$path;
 		if (!file_exists(dirname($path))) {
 			mkdir(dirname($path), 0777, true);
 		}

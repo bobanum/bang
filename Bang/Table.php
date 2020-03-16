@@ -107,7 +107,7 @@ class Table {
 		$result = [];
 		foreach($this->columns as $column) {
 			$result[] = '';
-			$result[] = '@component('.$this->sing.'.show.column, [\'label\'=>\''.$column->name.'\'])';
+			$result[] = '@component(\''.$this->sing.'.show.column\', [\'label\'=>\''.$column->name.'\'])';
 			$result[] = '{{$'.$this->sing.'->'.$column->name.'}}';
 			$result[] = '@endcomponent';
 		}
@@ -193,13 +193,15 @@ class Table {
 		return $result;
 	}
 	public function processModel() {
-		$path = "App/{$this->model}.php";
+		$path = "app/{$this->model}.php";
+		$path = $this->bang->output_path($path);
 		$template = $this->template_path("model.php");
 		$this->bang->applyTemplate($this, $template, $path);
 		$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with Model 🖼'{$this->model}' from template.";
 	}
 	public function processController() {
-		$path = "App/Http/Controllers/{$this->controller}.php";
+		$path = "app/Http/Controllers/{$this->controller}.php";
+		$path = $this->bang->output_path($path);
 		$template = $this->template_path("controller.php");
 		$this->bang->applyTemplate($this, $template, $path);
 		$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with Controller 🖰'$this->controller' from template.";
@@ -211,6 +213,7 @@ class Table {
 			$viewName = substr($view, strlen(__DIR__)+19, -4);
 			$viewPath = str_replace("_", "/", $viewName);
 			$path = "resources/views/{$this->sing}/{$viewPath}.blade.php";
+			$path = $this->bang->output_path($path);
 			$this->bang->applyTemplate($this, $view, $path);
 			$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with View 👁'{$this->sing}.index' from template.";
 
