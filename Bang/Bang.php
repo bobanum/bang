@@ -67,10 +67,31 @@ class Bang {
 	}
 	public function go() {
 		foreach ($this->tables as $table) {
+			$this->setConfigs();
+			$this->processViews();
 			$table->go();
 			$this->messages = array_merge($this->messages, $table->messages);
 		}
 		echo implode("\r\n", $this->messages);
+	}
+	public function processViews()
+	{
+		$views = glob($this->template_path("view_layout_*"));
+		foreach ($views as $view) {
+			$viewName = substr($view, strlen(__DIR__)+19, -4);
+			$viewPath = str_replace("_", "/", $viewName);
+			$path = "resources/views/{$viewPath}.blade.php";
+			$path = $this->output_path($path);
+			$this->applyTemplate($view, $this, $path);
+			$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with View 👁'layout {$view}.	' from template.";
+
+		}
+	}
+	public function setConfigs() {
+		$config = file_get_contents($this->output_path("config/database.php"));
+		$config = str_replace("'default' => env('DB_CONNECTION', 'mysql')", "'default' => 'sqlite'", $config);
+		$config = str_replace("'database' => env('DB_DATABASE', database_path('database.sqlite'))", "'database' => '{$this->db}'", $config);
+		file_put_contents($this->output_path("config/database.php"), $config);
 	}
 	public function output_path($file="") {
 		//TODO Stop assuming db in database folder

@@ -150,14 +150,6 @@ class Table {
 		$result = "";
 		return $result;
 	}
-	function go() {
-		$name = $this->name;
-		$this->messages[] = "• Processing Table '$name'.";
-		$this->messages[] = $this->report();
-		$this->processModel();
-		$this->processController();
-		$this->processViews();
-	}
 	function report($width=65) {
 		//║╗╝╚╔═╣╠╬╪╤╧
 		$hr = "╔".str_repeat("═", $width-30)."";
@@ -186,6 +178,31 @@ class Table {
 		$result = implode("\r\n", $result);
 		return $result;
 	}
+	function go() {
+		$name = $this->name;
+		$this->messages[] = "• Processing Table '$name'.";
+		$this->messages[] = $this->report();
+		$this->processRoutes();
+		$this->processModel();
+		$this->processController();
+		$this->processViews();
+	}
+	public function processRoutes() {
+		$path = "routes/web.php";
+		$path = $this->bang->output_path($path);
+		$web = file_get_contents($path);
+		//Remove old routes
+		$head = "\r\n//route for {$this->model}\r\n";
+		$foot = "\r\n//endroute\r\n";
+		$pattern = '#'.preg_quote($head).'.*'.preg_quote($foot).'#ms';
+		$web = preg_replace($pattern, "", $web);
+		//Add new routes
+		$routes = $this->bang->applyTemplate("routes_web", $this);
+		$routes = $head.$routes.$foot;
+		$web .= $routes;
+		file_put_contents($path, $web);
+		$this->messages[] = "• Creating routes un file 🗎'{$path}'\r\n  using Model 🖼'{$this->model}' from template.";
+	}
 	public function processModel() {
 		$path = "app/{$this->model}.php";
 		$path = $this->bang->output_path($path);
@@ -200,7 +217,7 @@ class Table {
 	}
 	public function processViews()
 	{
-		$views = glob($this->bang->template_path("view_*.*"));
+		$views = glob($this->bang->template_path("view_table_*"));
 		foreach ($views as $view) {
 			$viewName = substr($view, strlen(__DIR__)+19, -4);
 			$viewPath = str_replace("_", "/", $viewName);
