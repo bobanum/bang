@@ -94,11 +94,30 @@ class Bang {
 		}
 		return $result;
 	}
-	public function applyTemplate($table, $template, $path) {
-		if (!file_exists(dirname($path))) {
-			mkdir(dirname($path), 0777, true);
+	public function template_path($file = "") {
+		$result = __DIR__."/../templates";
+		if ($file) {
+			$result .= "/$file.php";
+		}
+		return $result;
+	}
+	public function applyTemplate($template, $obj, $path=null) {
+		if (!realpath($template)) {
+			$template = $this->template_path($template);
+		}
+		if (is_array($obj)) {
+			extract($obj);
+		} else {
+			$table = $obj;	//TODO CHANGE NAME table here and in templates
 		}
 		$tmpl = require $template;
-		file_put_contents($path, $tmpl);
+		if ($path) {
+			if (!file_exists(dirname($path))) {
+				mkdir(dirname($path), 0777, true);
+			}
+			file_put_contents($path, $tmpl);
+		} else {
+			return $tmpl;
+		}
 	}
 }

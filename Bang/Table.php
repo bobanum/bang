@@ -106,10 +106,11 @@ class Table {
 	function get_show_columns() {
 		$result = [];
 		foreach($this->columns as $column) {
-			$result[] = '';
-			$result[] = '@component(\''.$this->sing.'.show.column\', [\'label\'=>\''.$column->name.'\'])';
-			$result[] = '{{$'.$this->sing.'->'.$column->name.'}}';
-			$result[] = '@endcomponent';
+			
+			$result[] = $this->bang->applyTemplate("v_index_list", ['table'=>$this, 'column'=>$column]);
+			// $result[] = '@component(\''.$this->sing.'.show.column\', [\'label\'=>\''.$column->name.'\'])';
+			// $result[] = '{{$'.$this->sing.'->'.$column->name.'}}';
+			// $result[] = '@endcomponent';
 		}
 
 		return implode("\r\n",$result);
@@ -185,36 +186,27 @@ class Table {
 		$result = implode("\r\n", $result);
 		return $result;
 	}
-	public function template_path($file = "") {
-		$result = __DIR__."/../templates";
-		if ($file) {
-			$result .= "/" . $file;
-		}
-		return $result;
-	}
 	public function processModel() {
 		$path = "app/{$this->model}.php";
 		$path = $this->bang->output_path($path);
-		$template = $this->template_path("model.php");
-		$this->bang->applyTemplate($this, $template, $path);
+		$this->bang->applyTemplate("model", $this, $path);
 		$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with Model 🖼'{$this->model}' from template.";
 	}
 	public function processController() {
 		$path = "app/Http/Controllers/{$this->controller}.php";
 		$path = $this->bang->output_path($path);
-		$template = $this->template_path("controller.php");
-		$this->bang->applyTemplate($this, $template, $path);
+		$this->bang->applyTemplate("controller", $this, $path);
 		$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with Controller 🖰'$this->controller' from template.";
 	}
 	public function processViews()
 	{
-		$views = glob(__DIR__."/../templates/view_*.*");
+		$views = glob($this->bang->template_path("view_*.*"));
 		foreach ($views as $view) {
 			$viewName = substr($view, strlen(__DIR__)+19, -4);
 			$viewPath = str_replace("_", "/", $viewName);
 			$path = "resources/views/{$this->sing}/{$viewPath}.blade.php";
 			$path = $this->bang->output_path($path);
-			$this->bang->applyTemplate($this, $view, $path);
+			$this->bang->applyTemplate($view, $this, $path);
 			$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with View 👁'{$this->sing}.index' from template.";
 
 		}
