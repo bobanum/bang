@@ -5,13 +5,13 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class $table->model extends Model
+class $obj->model extends Model
 {
-{$table->forcedName}
-{$table->defaultValues}
-{$table->fillable}
-{$table->hasMany}
-{$table->BelongsTo}
-{$table->BelongsToMany}
+{$obj->forcedName}
+{$obj->defaultValues}
+{$obj->fillable}
+{$obj->hasMany}
+{$obj->BelongsTo}
+{$obj->BelongsToMany}
 }
 EOT;

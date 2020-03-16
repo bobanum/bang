@@ -82,7 +82,7 @@ class Table {
 		$result = implode("", $result);
 		return lcfirst($result);
 	}
-	function get_sing() {
+	function get_singular() {
 		$result = $this->normalized;
 		if (substr($result, -1) === "s") {
 			return substr($result, 0, -1);
@@ -100,7 +100,7 @@ class Table {
 		}
 	}
 	function get_views() {
-		$result = $this->sing;
+		$result = $this->singular;
 		return $result;
 	}
 	function get_show_columns() {
@@ -108,8 +108,8 @@ class Table {
 		foreach($this->columns as $column) {
 			
 			$result[] = $this->bang->applyTemplate("v_index_list", ['table'=>$this, 'column'=>$column]);
-			// $result[] = '@component(\''.$this->sing.'.show.column\', [\'label\'=>\''.$column->name.'\'])';
-			// $result[] = '{{$'.$this->sing.'->'.$column->name.'}}';
+			// $result[] = '@component(\''.$this->singular.'.show.column\', [\'label\'=>\''.$column->name.'\'])';
+			// $result[] = '{{$'.$this->singular.'->'.$column->name.'}}';
 			// $result[] = '@endcomponent';
 		}
 
@@ -129,7 +129,7 @@ class Table {
 		$tables = $this->bang->hasMany($this->name);
 		foreach ($tables as $table) {
 			$result[] = "\t/** */";
-			$result[] = "\tpublic function {$table->sing}() {";
+			$result[] = "\tpublic function {$table->singular}() {";
 			$result[] = "\t\treturn \$this->belongsTo('App\\$table->model');";
 			$result[] = "\t}";	
 		}
@@ -140,7 +140,7 @@ class Table {
 		foreach($this->foreignKeys as $foreignKey) {
 			$foreignTable = $this->bang->tables[$foreignKey->table];
 			$result[] = "\t/** */";
-			$result[] = "\tpublic function {$foreignTable->sing}() {";
+			$result[] = "\tpublic function {$foreignTable->singular}() {";
 			$result[] = "\t\treturn \$this->belongsTo('App\\$foreignTable->model');";
 			$result[] = "\t}";
 		}
@@ -221,10 +221,10 @@ class Table {
 		foreach ($views as $view) {
 			$viewName = substr($view, strlen(__DIR__)+19, -4);
 			$viewPath = str_replace("_", "/", $viewName);
-			$path = "resources/views/{$this->sing}/{$viewPath}.blade.php";
+			$path = "resources/views/{$this->singular}/{$viewPath}.blade.php";
 			$path = $this->bang->output_path($path);
 			$this->bang->applyTemplate($view, $this, $path);
-			$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with View 👁'{$this->sing}.index' from template.";
+			$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with View 👁'{$this->singular}.index' from template.";
 
 		}
 	}

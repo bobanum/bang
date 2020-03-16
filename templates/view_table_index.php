@@ -2,15 +2,15 @@
 return <<<EOT
 @extends('layout.index')
 @section('contenu')
-<h1>Liste des {$table->name}</h1>
-@if(count($table->plurVar) > 0)
-<div class="$table->plur">
-	@foreach($table->plurVar as $table->singVar)
-	<div><a href="{{action('$table->controller@show', $table->singVar)}}">{{{$table->singVar}->{$table->label}}}</a></div>
+<h1>Liste des {$obj->name}</h1>
+@if(count($obj->pluralVar) > 0)
+<div class="$obj->plural">
+	@foreach($obj->pluralVar as $obj->singularVar)
+	<div><a href="{{action('$obj->controller@show', $obj->singularVar)}}">{{{$obj->singularVar}->{$obj->label}}}</a></div>
 	@endforeach
 </div>
 @else
-<div>Il n'y a aucun {$table->name}.</div>
+<div>Il n'y a aucun {$obj->name}.</div>
 @endif
 @endsection
 EOT;

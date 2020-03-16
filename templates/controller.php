@@ -4,10 +4,10 @@ return <<<EOT
 
 namespace App\Http\Controllers;
 
-use App\\{$table->model};
+use App\\{$obj->model};
 use Illuminate\Http\Request;
 
-class {$table->controller} extends Controller
+class {$obj->controller} extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,81 +16,81 @@ class {$table->controller} extends Controller
      */
     public function index()
     {
-        {$table->plurVar} = {$table->model}::all();
-        return view("{$table->sing}.index", ['{$table->plur}'=>{$table->plurVar}]);
+        {$obj->pluralVar} = {$obj->model}::all();
+        return view("{$obj->singular}.index", ['{$obj->plural}'=>{$obj->pluralVar}]);
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @param  \App\{$table->model}  {$table->singVar}
+     * @param  \App\{$obj->model}  {$obj->singularVar}
 	 * @return \Illuminate\Http\Response
      */
-	public function create({$table->model}  {$table->singVar})
+	public function create({$obj->model}  {$obj->singularVar})
     {
-		return view("{$table->sing}.create", ['{$table->sing}'=>{$table->singVar}]);
+		return view("{$obj->singular}.create", ['{$obj->singular}'=>{$obj->singularVar}]);
     }
 
     /**
      * Store a newly created resource in storage.
      *
 	 * @param  \Illuminate\Http\Request  \$request
-     * @param  \App\{$table->model}  {$table->singVar}
+     * @param  \App\{$obj->model}  {$obj->singularVar}
      * @return \Illuminate\Http\Response
      */
-    public function store(Request \$request, {$table->model}  {$table->singVar})
+    public function store(Request \$request, {$obj->model}  {$obj->singularVar})
     {
-		{$table->singVar}->fill(\$request->all());
-		{$table->singVar}->save();
-		return redirect()->action('{$table->controller}@show', {$table->singVar});
+		{$obj->singularVar}->fill(\$request->all());
+		{$obj->singularVar}->save();
+		return redirect()->action('{$obj->controller}@show', {$obj->singularVar});
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\{$table->model}  {$table->singVar}
+     * @param  \App\{$obj->model}  {$obj->singularVar}
      * @return \Illuminate\Http\Response
      */
-    public function show({$table->model}  {$table->singVar})
+    public function show({$obj->model}  {$obj->singularVar})
     {
-        return view('{$table->views}.show', ['{$table->sing}'=>{$table->singVar}]);
+        return view('{$obj->views}.show', ['{$obj->singular}'=>{$obj->singularVar}]);
     }
 	
     /**
 	 * Show the form for editing the specified resource.
      *
-	 * @param  \App\{$table->model}  {$table->singVar}
+	 * @param  \App\{$obj->model}  {$obj->singularVar}
 	 * @return \Illuminate\Http\Response
      */
-	public function edit({$table->model} {$table->singVar})
+	public function edit({$obj->model} {$obj->singularVar})
     {
-		return view('{$table->views}.edit', ['{$table->sing}'=>{$table->singVar}]);
+		return view('{$obj->views}.edit', ['{$obj->singular}'=>{$obj->singularVar}]);
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  \$request
-     * @param  \App\{$table->model}  {$table->singVar}
+     * @param  \App\{$obj->model}  {$obj->singularVar}
      * @return \Illuminate\Http\Response
      */
-    public function update(Request \$request, {$table->model} {$table->singVar})
+    public function update(Request \$request, {$obj->model} {$obj->singularVar})
     {
-		{$table->singVar}->fill(\$request->all());
-		{$table->singVar}->save();
-		return redirect()->action('{$table->controller}@show', {$table->singVar});
+		{$obj->singularVar}->fill(\$request->all());
+		{$obj->singularVar}->save();
+		return redirect()->action('{$obj->controller}@show', {$obj->singularVar});
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\{$table->model}  {$table->singVar}
+     * @param  \App\{$obj->model}  {$obj->singularVar}
      * @return \Illuminate\Http\Response
      */
-    public function destroy({$table->model} {$table->singVar})
+    public function destroy({$obj->model} {$obj->singularVar})
     {
-		{$table->singVar}->delete();
-		return redirect()->action('{$table->controller}@index');
+		{$obj->singularVar}->delete();
+		return redirect()->action('{$obj->controller}@index');
     }
 }
 EOT;

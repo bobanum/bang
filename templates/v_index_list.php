@@ -1,6 +1,6 @@
 <?php
 return <<<EOT
-@component('{$table->sing}.show.column', ['label'=>'{$column->name}'])
-{{\${$table->sing}->{$column->name}}}
+@component('{$obj->singular}.show.column', ['label'=>'{$column->name}'])
+{{\${$obj->singular}->{$column->name}}}
 @endcomponent
 EOT;

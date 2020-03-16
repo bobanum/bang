@@ -128,8 +128,6 @@ class Bang {
 		}
 		if (is_array($obj)) {
 			extract($obj);
-		} else {
-			$table = $obj;	//TODO CHANGE NAME table here and in templates
 		}
 		$tmpl = require $template;
 		if ($path) {
