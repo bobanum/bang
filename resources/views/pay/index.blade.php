@@ -1,5 +1,5 @@
 @extends('layout.index')
-@section('contenu')
+@section('content')
 <h1>Liste des pays</h1>
 @if(count($pays) > 0)
 <div class="pays">

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="assets/css/style.css"/>
+    <title>@yield('title')</title>
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <img src="assets/images/logo_bang.svg" alt="logo"/>
+            <h1>My Favorite Site</h1>
+        </header>
+        <nav>
+            <ul>
+                <li><a href=".">Accueil</a></li>
+                <li><a href="#">Fichier</a></li>
+                <li><a href="#">Édition</a></li>
+                <li><a href="#">Affichage</a></li>
+                <li><a href="#">Aide</a></li>
+            </ul>
+        </nav>
+        <div class="body">
+            @section('content')
+                <h1>NO CONTENT</h1>
+            @show
+        </div>
+        <footer>&copy; 1970 My Favorite Site</footer>
+    </div>
+</body>
+</html>

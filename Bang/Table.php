@@ -90,7 +90,7 @@ class Table {
 			return $result;
 		}
 	}
-	function get_plur() {
+	function get_plural() {
 		$result = $this->normalized;
 		// echo $result;exit;
 		if (substr($result, -1) === "s") {
@@ -106,11 +106,15 @@ class Table {
 	function get_show_columns() {
 		$result = [];
 		foreach($this->columns as $column) {
-			
-			$result[] = $this->bang->applyTemplate("v_index_list", ['table'=>$this, 'column'=>$column]);
-			// $result[] = '@component(\''.$this->singular.'.show.column\', [\'label\'=>\''.$column->name.'\'])';
-			// $result[] = '{{$'.$this->singular.'->'.$column->name.'}}';
-			// $result[] = '@endcomponent';
+			$result[] = $this->bang->applyTemplate("v_index_list", ['obj'=>$this, 'column'=>$column]);
+		}
+
+		return implode("\r\n",$result);
+	}
+	function get_form_columns() {
+		$result = [];
+		foreach($this->columns as $column) {
+			$result[] = $this->bang->applyTemplate("v_form_list", ['obj'=>$this, 'column'=>$column]);
 		}
 
 		return implode("\r\n",$result);
@@ -219,9 +223,13 @@ class Table {
 	{
 		$views = glob($this->bang->template_path("view_table_*"));
 		foreach ($views as $view) {
-			$viewName = substr($view, strlen(__DIR__)+19, -4);
-			$viewPath = str_replace("_", "/", $viewName);
-			$path = "resources/views/{$this->singular}/{$viewPath}.blade.php";
+			$path = basename($view);
+			$path = substr($path, 0, -4);
+			$path = explode("_", $path);
+			array_shift($path);
+			$path[0] = $this->singular;
+			$path = implode("/", $path);
+			$path = "resources/views/{$path}.blade.php";
 			$path = $this->bang->output_path($path);
 			$this->bang->applyTemplate($view, $this, $path);
 			$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with View 👁'{$this->singular}.index' from template.";
