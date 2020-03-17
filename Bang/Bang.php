@@ -66,28 +66,48 @@ class Bang {
 		return $stmt;
 	}
 	public function go() {
+		$this->messages[] = "\r\nSETTING CONFIGURATIONS\r\n═════════════════════════════════════════════════════════════════";
+		$this->setConfigs();
+		$this->messages[] = "\r\nGLOBAL VIEWS\r\n═════════════════════════════════════════════════════════════════";
+		$this->processViews();
+		$this->messages[] = "\r\nCOPYING ASSETS\r\n═════════════════════════════════════════════════════════════════";
+		$this->copyAssets();
+		$this->messages[] = "\r\nMANAGING TABLES\r\n═════════════════════════════════════════════════════════════════";
 		foreach ($this->tables as $table) {
-			$this->setConfigs();
-			$this->processViews();
 			$table->go();
 			$this->messages = array_merge($this->messages, $table->messages);
 		}
 		echo implode("\r\n", $this->messages);
 	}
+	public function copyAssets() {
+		$this->messages[] = "• Adding 🗁'{$this->asset_path("css")}'\r\n  to 🗁'{$this->output_path("public")}'";
+		shell_exec("cp -r '{$this->asset_path("css")}' '{$this->output_path("public")}'");
+		
+		$this->messages[] = "• Adding 🗁'{$this->asset_path("images")}'\r\n  to 🗁'{$this->output_path("public")}'";
+		shell_exec("cp -r '{$this->asset_path("images")}' '{$this->output_path("public")}'");
+	}
 	public function processViews()
 	{
 		$views = glob($this->template_path("view_layout_*"));
 		foreach ($views as $view) {
-			$viewName = substr($view, strlen(__DIR__)+19, -4);
-			$viewPath = str_replace("_", "/", $viewName);
-			$path = "resources/views/{$viewPath}.blade.php";
+			$path = basename($view);
+			$path = substr($path, 0, -4);
+			$path = explode("_", $path);
+			array_shift($path);
+			$path = implode("/", $path);
+			$path = "resources/views/{$path}.blade.php";
 			$path = $this->output_path($path);
+			// $viewName = substr($view, strlen(__DIR__)+19, -4);
+			// $viewPath = str_replace("_", "/", $viewName);
+			// $path = "resources/views/{$viewPath}.blade.php";
+			// $path = $this->output_path($path);
 			$this->applyTemplate($view, $this, $path);
-			$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with View 👁'layout {$view}.	' from template.";
+			$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with View 👁'layout {$view}.' from template.";
 
 		}
 	}
 	public function setConfigs() {
+		$this->messages[] = "• Setting database '{$this->db}'";
 		$config = file_get_contents($this->output_path("config/database.php"));
 		$config = str_replace("'default' => env('DB_CONNECTION', 'mysql')", "'default' => 'sqlite'", $config);
 		$config = str_replace("'database' => env('DB_DATABASE', database_path('database.sqlite'))", "'database' => '{$this->db}'", $config);
@@ -104,7 +124,7 @@ class Bang {
 		return $result;
 	}
 	public function phar_path($file="") {
-		$result = basename($this);
+		$result = $this->base_path();
 		//TODO Check for non phar path
 		$result = substr($result, 7);
 		$result = dirname($result);
@@ -115,10 +135,24 @@ class Bang {
 		}
 		return $result;
 	}
+	public function base_path($file = "") {
+		$result = str_replace("\\", "/", dirname(__DIR__));
+		if ($file) {
+			$result .= "/$file";
+		}
+		return $result;
+	}
 	public function template_path($file = "") {
-		$result = __DIR__."/../templates";
+		$result = $this->base_path("templates");
 		if ($file) {
 			$result .= "/$file.php";
+		}
+		return $result;
+	}
+	public function asset_path($file = "") {
+		$result = $this->base_path("assets");
+		if ($file) {
+			$result .= "/$file";
 		}
 		return $result;
 	}

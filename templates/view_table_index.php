@@ -1,6 +1,6 @@
 <?php
 return <<<EOT
-@extends('layout.index')
+@extends('layout.index', ['title'=>'List of $obj->plural'])
 @section('content')
 <h1>Liste des {$obj->name}</h1>
 @if(count($obj->pluralVar) > 0)
