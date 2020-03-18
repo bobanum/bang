@@ -10,7 +10,8 @@ return <<<EOT
 	@endforeach
 </div>
 @else
-<div>Il n'y a aucun {$obj->name}.</div>
+<div>No {$obj->name}.</div>
 @endif
+<a href="{{action('{$obj->model}Controller@create')}}">New {$obj->singular}</a>
 @endsection
 EOT;

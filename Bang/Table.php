@@ -68,10 +68,16 @@ class Table {
 		$result[] = "\t];";	
 		return implode("\r\n", $result);
 	}
-	function get_fillable() {
+	function get_fillableColumns() {
 		$result = $this->columns;
+		$result = array_filter($result, function ($col) { 
+			return $col->name !== "id";
+		});
+		return $result;
+	}
+	function get_fillable() {
+		$result = $this->fillableColumns;
 		$result = array_map(function ($col) { return $col->name; }, $result);
-		$result = array_filter($result, function ($col) { return $col !== "id"; });
 		$result = implode("', '", $result);
 		$result = "\tprotected \$fillable = ['$result'];\r\n";
 		return $result;
@@ -154,6 +160,23 @@ class Table {
 		$result = "";
 		return $result;
 	}
+	function get_rules() {		
+		$columns = $this->fillableColumns;
+		$result = [];
+		foreach($columns as $col) {
+			$result[] = '	$result[\''.$col->name.'\'] = \'required\';';
+		}
+		return implode("\r\n", $result);
+	}
+	function get_fakeColumns() {		
+		$columns = $this->fillableColumns;
+		$result = [];
+		foreach($columns as $col) {
+			$result[] = '	$result->'.$col->name.' = $faker->word;';
+		}
+		return implode("\r\n", $result);
+	}
+
 	function report($width=65) {
 		//║╗╝╚╔═╣╠╬╪╤╧
 		$hr = "╔".str_repeat("═", $width-30)."";

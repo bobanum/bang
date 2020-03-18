@@ -28,6 +28,7 @@ class {$obj->controller} extends Controller
      */
 	public function create({$obj->model}  {$obj->singularVar})
     {
+        \${$obj->singular} = {$obj->model}::fake();
 		return view("{$obj->singular}.create", ['{$obj->singular}'=>{$obj->singularVar}]);
     }
 
@@ -40,6 +41,7 @@ class {$obj->controller} extends Controller
      */
     public function store(Request \$request, {$obj->model}  {$obj->singularVar})
     {
+        \$validatedData = \$request->validate({$obj->singularVar}->rules);
 		{$obj->singularVar}->fill(\$request->all());
 		{$obj->singularVar}->save();
 		return redirect()->action('{$obj->controller}@show', {$obj->singularVar});
