@@ -106,7 +106,7 @@ class Table {
 	function get_show_columns() {
 		$result = [];
 		foreach($this->columns as $column) {
-			$result[] = $this->bang->applyTemplate("v_index_list", ['obj'=>$this, 'column'=>$column]);
+			$result[] = $this->bang->applyTemplate("v_index_list.php", ['obj'=>$this, 'column'=>$column]);
 		}
 
 		return implode("\r\n",$result);
@@ -114,7 +114,7 @@ class Table {
 	function get_form_columns() {
 		$result = [];
 		foreach($this->columns as $column) {
-			$result[] = $this->bang->applyTemplate("v_form_list", ['obj'=>$this, 'column'=>$column]);
+			$result[] = $this->bang->applyTemplate("v_form_list.php", ['obj'=>$this, 'column'=>$column]);
 		}
 
 		return implode("\r\n",$result);
@@ -201,7 +201,7 @@ class Table {
 		$pattern = '#'.preg_quote($head).'.*'.preg_quote($foot).'#ms';
 		$web = preg_replace($pattern, "", $web);
 		//Add new routes
-		$routes = $this->bang->applyTemplate("routes_web", $this);
+		$routes = $this->bang->applyTemplate("routes_web.php", $this);
 		$routes = $head.$routes.$foot;
 		$web .= $routes;
 		file_put_contents($path, $web);
@@ -210,13 +210,13 @@ class Table {
 	public function processModel() {
 		$path = "app/{$this->model}.php";
 		$path = $this->bang->output_path($path);
-		$this->bang->applyTemplate("model", $this, $path);
+		$this->bang->applyTemplate("model.php", $this, $path);
 		$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with Model 🖼'{$this->model}' from template.";
 	}
 	public function processController() {
 		$path = "app/Http/Controllers/{$this->controller}.php";
 		$path = $this->bang->output_path($path);
-		$this->bang->applyTemplate("controller", $this, $path);
+		$this->bang->applyTemplate("controller.php", $this, $path);
 		$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with Controller 🖰'$this->controller' from template.";
 	}
 	public function processViews()

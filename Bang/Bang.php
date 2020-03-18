@@ -79,16 +79,48 @@ class Bang {
 		}
 		echo implode("\r\n", $this->messages);
 	}
+
+	public function copy_dir($src, $dst) {
+		if (is_dir($src)) {
+			$dst .= "/".basename($src);
+			if (!is_dir($dst)) {
+				mkdir($dst);
+			}
+		} else {
+			copy($src, $dst);
+			return;
+		}
+		
+		$files = glob("$src/*");		
+		foreach($files as $file) {
+			if ((substr($file,0,-1) === '.' ) || (substr($file,0,-2) === '..' )) {
+				continue;
+			}
+			$this->copy_dir($file, $dst.'/'.basename($file));
+		}
+	}
 	public function copyAssets() {
 		$this->messages[] = "• Adding 🗁'{$this->asset_path("css")}'\r\n  to 🗁'{$this->output_path("public")}'";
-		shell_exec("cp -r '{$this->asset_path("css")}' '{$this->output_path("public")}'");
+		$this->copy_dir($this->asset_path("css"), $this->output_path("public"));
 		
 		$this->messages[] = "• Adding 🗁'{$this->asset_path("images")}'\r\n  to 🗁'{$this->output_path("public")}'";
-		shell_exec("cp -r '{$this->asset_path("images")}' '{$this->output_path("public")}'");
+		$this->copy_dir($this->asset_path("images"), $this->output_path("public"));
+	}
+	public function glob($p) {
+		$result = [];
+		$d = dirname($p);
+		$dh = opendir($d);
+		while (false !== ($f = readdir($dh))) {
+			if (fnmatch($p, "$d/$f")) {
+				$result[] = "$d/$f";
+			}
+		}
+		return $result;
 	}
 	public function processViews()
 	{
-		$views = glob($this->template_path("view_layout_*"));
+		$views = $this->template_path("view_layout_*");
+		$views = $this->glob($views);
 		foreach ($views as $view) {
 			$path = basename($view);
 			$path = substr($path, 0, -4);
@@ -101,8 +133,8 @@ class Bang {
 			// $viewPath = str_replace("_", "/", $viewName);
 			// $path = "resources/views/{$viewPath}.blade.php";
 			// $path = $this->output_path($path);
-			$this->applyTemplate($view, $this, $path);
 			$this->messages[] = "• Creating file 🗎'{$path}'\r\n  with View 👁'layout {$view}.' from template.";
+			$this->applyTemplate($view, $this, $path);
 
 		}
 	}
@@ -145,7 +177,7 @@ class Bang {
 	public function template_path($file = "") {
 		$result = $this->base_path("templates");
 		if ($file) {
-			$result .= "/$file.php";
+			$result .= "/$file";
 		}
 		return $result;
 	}
@@ -157,7 +189,7 @@ class Bang {
 		return $result;
 	}
 	public function applyTemplate($template, $obj, $path=null) {
-		if (!realpath($template)) {
+		if (!file_exists($template)) {
 			$template = $this->template_path($template);
 		}
 		if (is_array($obj)) {
