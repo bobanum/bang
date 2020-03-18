@@ -2,7 +2,8 @@
 error_reporting(E_ALL);
 header("content-type: text/plain");
 // GIST https://gist.github.com/bobanum/5051442136a2ff081ea714ac918d6a51
-if (isset($arcg)) {
+//MODIFIÉ
+if (isset($argc)) {
 
     $message = "";
     
@@ -92,7 +93,8 @@ if (isset($arcg)) {
     if (isset($args)) {
         $db = $args[0];
     } else {
-        $db = glob("database/*.sqlite");
+        $path = substr(dirname(__DIR__), 7);
+        $db = glob("$path/database/*.sqlite");
         if (count($db) === 0) {
             die("error");
         }
@@ -101,7 +103,7 @@ if (isset($arcg)) {
 }
 
 //TEMP:
-$db = "C:/Users/bo_ba/Desktop/rebang/database/monde.sqlite";
+// $db = "C:/Users/bo_ba/Desktop/rebang/database/monde.sqlite";
 
 spl_autoload_register(function ($class) {
     include '' . $class . '.php';

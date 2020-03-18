@@ -14,10 +14,8 @@ class Bang {
 	{
 		if (realpath($db)) {
 			$this->db = $db;
-			
 		} else {
 			$this->db = realpath(dirname($_SERVER['SCRIPT_FILENAME'])."/".$db);
-
 		}
 	}
 	function get_tables() {
@@ -91,7 +89,7 @@ class Bang {
 			return;
 		}
 		
-		$files = glob("$src/*");		
+		$files = $this->glob("$src/*");		
 		foreach($files as $file) {
 			if ((substr($file,0,-1) === '.' ) || (substr($file,0,-2) === '..' )) {
 				continue;

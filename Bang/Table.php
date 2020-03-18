@@ -185,7 +185,7 @@ class Table {
 	function go() {
 		$name = $this->name;
 		$this->messages[] = "• Processing Table '$name'.";
-		$this->messages[] = $this->report();
+		// $this->messages[] = $this->report();
 		$this->processRoutes();
 		$this->processModel();
 		$this->processController();
@@ -221,7 +221,8 @@ class Table {
 	}
 	public function processViews()
 	{
-		$views = glob($this->bang->template_path("view_table_*"));
+		$views = $this->bang->template_path("view_table_*");
+		$views = $this->bang->glob($views);
 		foreach ($views as $view) {
 			$path = basename($view);
 			$path = substr($path, 0, -4);
