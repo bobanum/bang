@@ -9,5 +9,6 @@ Route::group(['prefix'=>'{$obj->singular}', 'where'=>['{$obj->singular}'=>'[1-9]
     Route::put("/{{$obj->singular}}", "{$obj->controller}@update");
     Route::delete("/{{$obj->singular}}", "{$obj->controller}@destroy");
     Route::get("/{{$obj->singular}}/edit", "{$obj->controller}@edit");
+    Route::get("/{{$obj->singular}}/delete", "{$obj->controller}@delete");
 });
 EOT;

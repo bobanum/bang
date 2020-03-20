@@ -84,6 +84,17 @@ class {$obj->controller} extends Controller
     }
 
     /**
+	 * Show the form for deleting the specified resource.
+     *
+	 * @param  \App\{$obj->model}  {$obj->singularVar}
+	 * @return \Illuminate\Http\Response
+     */
+	public function delete({$obj->model} {$obj->singularVar})
+    {
+		return view('{$obj->views}.delete', ['{$obj->singular}'=>{$obj->singularVar}]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\{$obj->model}  {$obj->singularVar}
@@ -91,6 +102,7 @@ class {$obj->controller} extends Controller
      */
     public function destroy({$obj->model} {$obj->singularVar})
     {
+		{$obj->deleteForeign}
 		{$obj->singularVar}->delete();
 		return redirect()->action('{$obj->controller}@index');
     }

@@ -9,7 +9,7 @@ return <<<EOT
     <input type="text" id="id" name="id" value="{{\${$obj->singular}->id}}" />
     @endcomponent --}}
     @include('{$obj->singular}.form', ['{$obj->singular}'=>\${$obj->singular}, 'verb'=>'post'])
-    <div><input type="submit" name=""></div>
+    <div><input type="submit" name=""><a href="{{action('{$obj->model}Controller@index')}}">Cancel</a></div>
 </form>
 @endsection
 EOT;

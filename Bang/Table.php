@@ -136,7 +136,7 @@ class Table {
 	}
 	function get_hasMany() {
 		$result = [];
-		$tables = $this->bang->hasMany($this->name);
+		$tables = $this->bang->hasMany($this);
 		foreach ($tables as $table) {
 			$result[] = "\t/** */";
 			$result[] = "\tpublic function {$table->singular}() {";
@@ -176,7 +176,14 @@ class Table {
 		}
 		return implode("\r\n", $result);
 	}
-
+	function get_deleteForeign() {
+		$tables = $this->bang->hasMany($this);
+		$result = [];
+		foreach($tables as $table) {
+			$result[] = "\\App\\$table->model::where('{$this->singular}_id', {$this->singularVar}->id)->delete();";
+		}
+		return implode("\r\n", $result);
+	}
 	function report($width=65) {
 		//║╗╝╚╔═╣╠╬╪╤╧
 		$hr = "╔".str_repeat("═", $width-30)."";
