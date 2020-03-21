@@ -5,7 +5,7 @@ return <<<EOT
 <h1>Create {$obj->label}</h1>
 <form action="{{action('{$obj->model}Controller@store')}}" method="post" >
     {{ method_field('post') }}
-    {{-- @component('{$obj->singular}.form.column', ['label'=>'id'])
+    {{-- @component('layout.column.form', ['label'=>'id'])
     <input type="text" id="id" name="id" value="{{\${$obj->singular}->id}}" />
     @endcomponent --}}
     @include('{$obj->singular}.form', ['{$obj->singular}'=>\${$obj->singular}, 'verb'=>'post'])

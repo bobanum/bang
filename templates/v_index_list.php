@@ -1,6 +1,6 @@
 <?php
 return <<<EOT
-@component('{$obj->singular}.show.column', ['label'=>'{$column->name}'])
+@component('layout.column.show', ['label'=>'{$column->name}'])
 {{\${$obj->singular}->{$column->name}}}
 @endcomponent
 EOT;
