@@ -149,9 +149,12 @@ class Table {
 	function get_show_columns() {
 		$result = [];
 		foreach($this->columns as $column) {
-			$result[] = $this->bang->applyTemplate("v_index_list.php", ['obj'=>$this, 'column'=>$column]);
+			if ($column->isForeign) {
+				$result[] = $this->bang->applyTemplate("v_show_foreign.php", ['obj'=>$this, 'foreign'=>$column->foreignTable]);
+			} else {
+				$result[] = $this->bang->applyTemplate("v_index_list.php", ['obj'=>$this, 'column'=>$column]);
+			}
 		}
-
 		return implode("\r\n",$result);
 	}
 	function get_form_columns() {
