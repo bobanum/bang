@@ -1,6 +1,7 @@
 <?php
 namespace Bang;
 use PDO;
+use Exception;
 error_reporting(E_ALL);
 class Bang {
 	use GetSet;
@@ -16,28 +17,84 @@ class Bang {
 	 * @param string $db The path to the database
 	 */
 	function __construct($db) {
-		if (realpath($db)) {
+		if (false != ($this->db = realpath($db))) {
+			$this->db = $db;
+		} elseif (false != ($this->db = realpath(dirname($_SERVER['SCRIPT_FILENAME'])."/".$db))) {
 			$this->db = $db;
 		} else {
-			$this->db = realpath(dirname($_SERVER['SCRIPT_FILENAME'])."/".$db);
+			throw new Exception("database '$db' not found");
 		}
+		$this->analyze();
 	}
-	
+	function analyze() {
+		$this->_tables = $this->fetchTables();
+		// Check for belongsTo and hasMany
+		foreach($this->_tables as $table) {
+			$table->analyze();
+		}
+		// Check for belongsToMany
+		foreach($this->tables as $table) {
+			$table->analyzeBelongsToMany();
+		}
+		// Check for hasManyThrough
+		foreach($this->tables as $table) {
+			$table->analyzeHasManyThrough();
+		}
+		return;
+	}
+	/**
+	 * GETTER Fetches all the tables of the database. (kept cached)
+	 * @return array The tables of the database
+	 * @deprecated
+	 * @todo Search and destroy
+	 */
+	function get_tables() {
+		if (empty($this->_tables)) {
+			$this->_tables = $this->fetchTables();
+		}
+		return $this->_tables;
+	}
 	/**
 	 * GETTER Fetches all the tables of the database. (kept cached)
 	 * @return array The tables of the database
 	 */
-	function get_tables() {
-		if (!$this->_tables) {
-			$pdo = $this->pdo;
-			$stmt = $pdo->prepare("SELECT * FROM sqlite_master WHERE type='table'");	//TODO Indexes
-			$stmt->execute();
-			$tables = $stmt->fetchAll(PDO::FETCH_CLASS, "Bang\Table");
-			$tables = array_filter($tables, function ($table) { return !in_array($table->name, $this->exclude);});
-			foreach ($tables as $table) {
-				$this->_tables[$table->name] = $table;
-				$table->bang = $this;
-			} 
+	function fetchTables() {
+		$pdo = $this->pdo;
+		$stmt = $pdo->prepare("SELECT * FROM sqlite_master WHERE type='table'");	//TODO Indexes
+		$stmt->execute();
+		$tables = $stmt->fetchAll(PDO::FETCH_CLASS, "Bang\Table");
+		$tables = array_filter($tables, function ($table) { return !in_array($table->name, $this->exclude);});
+		$result = [];
+		foreach ($tables as $table) {
+			$result[$table->name] = $table;
+			$table->bang = $this;
+		} 
+		return $result;
+	}
+	function getTable($name) {
+		return $this->tables[$name];
+	}
+	function get_junctionTables() {
+		$tables = $this->tables;
+		$result = [];
+		foreach($tables as $key=>$table) {
+			$subs = explode("_", $key);
+			if (count($subs) !== 2) {
+				continue;
+			}
+			if ($subs[1] <= $subs[0]) {
+				continue;
+			}
+			$subs[0].="s";
+			if (!isset($this->tables[$subs[0]])) {	//TODO better plural
+				continue;
+			}
+			$subs[1].="s";
+			if (!isset($this->tables[$subs[1]])) {	//TODO better plural
+				continue;
+			}
+			//TODO Check foreign keys?
+			$result[$key] = $subs;
 		}
 		return $this->_tables;
 	}
@@ -50,6 +107,9 @@ class Bang {
 	function get_pdo() {
 		if (!$this->_pdo) {
 			$pdo = new PDO("sqlite:{$this->db}");
+			if ($pdo->errorInfo()[1]) {
+				var_dump($pdo->errorInfo());
+			}
 			$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_CLASS);
 			$this->_pdo = $pdo;
 		}
@@ -88,12 +148,12 @@ class Bang {
 	function hasMany(Table $table) {
 		$result = [];
 		foreach($this->tables as $table2) {
-			foreach($table2->foreignKeys as $foreignKey) {
-				if ($foreignKey->table === $table->name) {
-					$result[$table2->name] = $table2;
-					break;
-				}
-			}
+			// foreach($table2->foreignKeys as $foreignKey) {
+			// 	if ($foreignKey->table === $table->name) {
+			// 		$result[$table2->name] = $table2;
+			// 		break;
+			// 	}
+			// }
 		}
 		return $result;
 	}
@@ -116,7 +176,7 @@ class Bang {
 		
 		$files = $this->glob("$src/*");		
 		foreach($files as $file) {
-			if ((substr($file,0,-1) === '.' ) || (substr($file,0,-2) === '..' )) {
+			if ((basename($file) === '.' ) || (basename($file) === '..' )) {
 				continue;
 			}
 			$this->copy_dir($file, $dst.'/'.basename($file));

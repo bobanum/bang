@@ -100,10 +100,13 @@ if (isset($argc)) {
         }
         $db = $db[0];
     }
+}else {
+    //TEMP:
+    $db = "C:/Users/bo_ba/Desktop/recettesbang/database/resto.sqlite";
+    // $db = "C:/Users/bo_ba/Desktop/rebang/database/monde.sqlite";
+
 }
 
-//TEMP:
-// $db = "C:/Users/bo_ba/Desktop/rebang/database/monde.sqlite";
 
 spl_autoload_register(function ($class) {
     include '' . $class . '.php';

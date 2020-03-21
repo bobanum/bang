@@ -6,36 +6,73 @@ use Exception;
 
 class Table {
 	use GetSet;
-	public $_columns = null;
-	public $_foreignKeys = null;
+	public $_columns = [];
+	public $belongsTo = [];
+	public $hasMany = [];
+	public $belongsToMany = [];
+	public $hasManyThrough = [];
+	public $hasOneThrough = [];
 	public $messages = [];
 	public $bang = null;
-	function __construct()
-	{
+	function __construct(){
 		
+	}
+	function analyze() {
+		$this->_columns = $this->fetchColumns();
+		// foreach($this->columns as $column) {
+		// 	$column->analyze();
+		// }
+	}
+	function analyzeBelongsToMany() {
+		$tables = array_values($this->belongsTo);
+		for($i = 0, $n = count($tables) - 1; $i < $n; $i += 1) {
+			for($j = $i + 1, $m = count($tables); $j < $m; $j += 1) {
+				$tables[$i]->belongsToMany[$tables[$j]->name] = $tables[$j];
+				$tables[$j]->belongsToMany[$tables[$i]->name] = $tables[$i];
+			}
+		}
+	}
+	function analyzeHasManyThrough() {
+		$a1 = array_values($this->belongsTo);
+		foreach($this->belongsTo as $bt) {
+			foreach($this->hasMany as $hm) {
+				$bt->hasManyThrough[$hm->name] = [$hm, $this];
+				$hm->hasOneThrough[$bt->name] = [$bt, $this];
+			}
+		}
 	}
 	function get_columns() {
 		if (!$this->_columns) {
-			$stmt = $this->bang->execute("PRAGMA table_info({$this->name})");
-			$columns = $stmt->fetchAll(PDO::FETCH_CLASS, "Bang\Column");
-			foreach ($columns as $column) {
-				$this->_columns[$column->name] = $column;
-				$column->table = $this;
-			} 
+			$this->_columns = $this->fetchColumns();
 		}
 		return $this->_columns;
 	}
-	function get_foreignKeys() {
-		if (!$this->_foreignKeys) {
-			$stmt = $this->bang->execute("PRAGMA foreign_key_list({$this->name})");
-			$foreignKeys = $stmt->fetchAll(PDO::FETCH_OBJ);
-			$this->_foreignKeys = [];
-			foreach ($foreignKeys as $foreignKey) {
-				$this->_foreignKeys[$foreignKey->from] = $foreignKey;
-				$foreignKey->tableObj = $this;
-			} 
+	function fetchColumns() {
+		$stmt = $this->bang->execute("PRAGMA table_info({$this->name})");
+		$columns = $stmt->fetchAll(PDO::FETCH_CLASS, "Bang\Column");
+		$result = [];
+		foreach ($columns as $column) {
+			$result[$column->name] = $column;
+			$column->table = $this;
 		}
-		return $this->_foreignKeys;
+	// 	return $result;
+	// }
+	// function fetchForeignKeys() {
+		$stmt = $this->bang->execute("PRAGMA foreign_key_list({$this->name})");
+		$foreignKeys = $stmt->fetchAll(PDO::FETCH_OBJ);
+		// $result = [];
+		foreach ($foreignKeys as $foreignKey) {
+			$foreignTable = $this->bang->getTable($foreignKey->table);
+			unset($foreignKey->table);
+			$this->belongsTo[$foreignTable->name] = $foreignTable;
+			$foreignTable->hasMany[$this->name] = $this;
+			$foreignKey->foreignTable = $foreignTable;
+			//TODO Check pertinence
+			foreach ($foreignKey as $name=>$info) {
+				$result[$foreignKey->from]->$name = $info;
+			}
+		} 
+		return $result;
 	}
 	function get_model() {
 		$result = $this->name;
@@ -132,39 +169,32 @@ class Table {
 				return $column->name;
 			}
 		}
-		return $result;
+		return "id";
 	}
-	function get_hasMany() {
+	function get_relations() {
 		$result = [];
-		$tables = $this->bang->hasMany($this);
-		foreach ($tables as $table) {
-			$result[] = "\t/** */";
-			$result[] = "\tpublic function {$table->singular}() {";
-			$result[] = "\t\treturn \$this->belongsTo('App\\$table->model');";
-			$result[] = "\t}";	
+		foreach ($this->belongsTo as $table) {
+			$result[] = $this->bang->applyTemplate("r_belongsTo.php", $table);
+		}
+		foreach ($this->hasMany as $table) {
+			$result[] = $this->bang->applyTemplate("r_hasMany.php", $table);
+		}
+		foreach ($this->belongsToMany as $table) {
+			$result[] = $this->bang->applyTemplate("r_belongsToMany.php", $table);
+		}
+		foreach ($this->hasManyThrough as $tables) {
+			$result[] = $this->bang->applyTemplate("r_hasManyThrough.php", array_combine(['obj', 'obj2'], $tables));
+		}
+		foreach ($this->hasOneThrough as $tables) {
+			$result[] = $this->bang->applyTemplate("r_hasOneThrough.php", array_combine(['obj', 'obj2'], $tables));
 		}
 		return implode("\r\n", $result);
-	}
-	function get_belongsTo() {
-		$result = [];
-		foreach($this->foreignKeys as $foreignKey) {
-			$foreignTable = $this->bang->tables[$foreignKey->table];
-			$result[] = "\t/** */";
-			$result[] = "\tpublic function {$foreignTable->singular}() {";
-			$result[] = "\t\treturn \$this->belongsTo('App\\$foreignTable->model');";
-			$result[] = "\t}";
-		}
-		return implode("\r\n", $result);
-	}
-	function get_belongsToMany() {
-		$result = "";
-		return $result;
 	}
 	function get_rules() {		
 		$columns = $this->fillableColumns;
 		$result = [];
 		foreach($columns as $col) {
-			$result[] = '	$result[\''.$col->name.'\'] = \'required\';';
+			$result[] = '		$result[\''.$col->name.'\'] = \'required\';';
 		}
 		return implode("\r\n", $result);
 	}
@@ -172,7 +202,7 @@ class Table {
 		$columns = $this->fillableColumns;
 		$result = [];
 		foreach($columns as $col) {
-			$result[] = '	$result->'.$col->name.' = $faker->word;';
+			$result[] = '		$result->'.$col->name.' = $faker->word;';
 		}
 		return implode("\r\n", $result);
 	}
