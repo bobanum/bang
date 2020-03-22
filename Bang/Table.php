@@ -6,6 +6,8 @@ use Exception;
 
 class Table {
 	use GetSet;
+	use Table_Aliases;
+	use Table_Proxies;
 	public $_columns = [];
 	public $belongsTo = [];
 	public $hasMany = [];
@@ -18,7 +20,30 @@ class Table {
 		
 	}
 	function analyze() {
-		$this->fetchColumns();
+		// Fetch all the table's columns
+		$stmt = $this->bang->execute("PRAGMA table_info({$this->name})");
+		$columns = $stmt->fetchAll(PDO::FETCH_CLASS, "Bang\Column");
+		$this->_columns = [];
+		foreach ($columns as $column) {
+			$this->_columns[$column->name] = $column;
+			$column->table = $this;
+		}
+
+
+		// Add informations about foreign keys
+		$stmt = $this->bang->execute("PRAGMA foreign_key_list({$this->name})");
+		$foreignKeys = $stmt->fetchAll(PDO::FETCH_OBJ);
+		foreach ($foreignKeys as $foreignKey) {
+			$foreignTable = $this->bang->getTable($foreignKey->table);
+			unset($foreignKey->table);
+			// $this->belongsTo[$foreignTable->name] = $foreignTable;
+			$this->addBelongsTo($foreignTable, true);
+			// $foreignTable->hasMany[$this->name] = $this;
+			$foreignKey->foreignTable = $foreignTable;
+			foreach ($foreignKey as $name=>$info) {
+				$this->_columns[$foreignKey->from]->$name = $info;
+			}
+		} 
 	}
 	function analyzeBelongsToMany() {
 		$tables = array_values($this->belongsTo);
@@ -55,7 +80,7 @@ class Table {
 			return false;
 		}
 		// Do we have a foreign key for each table
-		if (!isset($this->columns[$t0->foreignKey]) || !isset($this->columns[$t1->foreignKey])) {
+		if (!isset($this->_columns[$t0->foreignKey]) || !isset($this->_columns[$t1->foreignKey])) {
 			return false;
 		}
 		return true;
@@ -81,192 +106,11 @@ class Table {
 			$table->addHasMany($this, false);
 		}
 	}
-	function get_columns() {
-		if (!$this->_columns) {
-			$this->_columns = $this->fetchColumns();
-		}
-		return $this->_columns;
-	}
-	function fetchColumns() {
-		// Fetch all the table's columns
-		$stmt = $this->bang->execute("PRAGMA table_info({$this->name})");
-		$columns = $stmt->fetchAll(PDO::FETCH_CLASS, "Bang\Column");
-		$this->_columns = [];
-		foreach ($columns as $column) {
-			$this->_columns[$column->name] = $column;
-			$column->table = $this;
-		}
-
-
-		// Add informations about foreign keys
-		$stmt = $this->bang->execute("PRAGMA foreign_key_list({$this->name})");
-		$foreignKeys = $stmt->fetchAll(PDO::FETCH_OBJ);
-		foreach ($foreignKeys as $foreignKey) {
-			$foreignTable = $this->bang->getTable($foreignKey->table);
-			unset($foreignKey->table);
-			// $this->belongsTo[$foreignTable->name] = $foreignTable;
-			$this->addBelongsTo($foreignTable, true);
-			// $foreignTable->hasMany[$this->name] = $this;
-			$foreignKey->foreignTable = $foreignTable;
-			//TODO Check pertinence
-			foreach ($foreignKey as $name=>$info) {
-				$result[$foreignKey->from]->$name = $info;
-			}
-		} 
-	}
-	function get_model() {
-		$result = $this->name;
-		if (substr($result, -1) === "s") {
-			$result = substr($result, 0, -1);
-		}
-		$result = explode("_", $result);
-		$result = array_map('ucfirst', $result);
-		$result = implode("", $result);
-		return $result;
-	}
-	function get_foreignKey() {
-		$result = $this->singular."_id";
-		return $result;
-	}
-	function get_controller() {
-		return "{$this->model}Controller";
-	}
-	function get_forcedName() {
-		if (substr($this->name, -1) === "s") {
-			return "";
-		} else {
-			return "\tprotected \$table = '$this->name';\r\n";
-		}
-	}
-	function get_defaultValues() {
-		$result = [];
-		$result[] = "\tprotected \$attributes = [";
-		foreach($this->columns as $column) {
-			if ($column->dflt_value !== null) {
-				$result[] = "\t\t'{$column->name}' => {$column->dflt_value},";
-			}
-		}
-		$result[] = "\t];";	
-		return implode("\r\n", $result);
-	}
 	function get_fillableColumns() {
-		$result = $this->columns;
-		$result = array_filter($result, function ($col) { 
+		$result = array_filter($this->_columns, function ($col) { 
 			return $col->name !== "id";
 		});
 		return $result;
-	}
-	function get_fillable() {
-		$result = $this->fillableColumns;
-		$result = array_map(function ($col) { return $col->name; }, $result);
-		$result = implode("', '", $result);
-		$result = "\tprotected \$fillable = ['$result'];\r\n";
-		return $result;
-	}
-	function get_normalized() {
-		$result = explode("_", $this->name);
-		$result = array_map('ucfirst', $result);
-		$result = implode("", $result);
-		return lcfirst($result);
-	}
-	function get_singular() {
-		$result = $this->normalized;
-		if (substr($result, -1) === "s") {
-			return substr($result, 0, -1);
-		} else {
-			return $result;
-		}
-	}
-	function get_plural() {
-		$result = $this->normalized;
-		// echo $result;exit;
-		if (substr($result, -1) === "s") {
-			return $result;
-		} else {
-			return $result . "s";
-		}
-	}
-	function get_views() {
-		$result = $this->singular;
-		return $result;
-	}
-	function get_show_columns() {
-		$result = [];
-		foreach($this->columns as $column) {
-			if ($column->isForeign) {
-				$result[] = $this->bang->applyTemplate("v_show_foreign.php", ['obj'=>$this, 'foreign'=>$column->foreignTable]);
-			} else {
-				$result[] = $this->bang->applyTemplate("v_index_list.php", ['obj'=>$this, 'column'=>$column]);
-			}
-		}
-		return implode("\r\n",$result);
-	}
-	function get_show_many() {
-		$result = [];
-		foreach($this->hasMany as $table) {
-			$result[] = $this->bang->applyTemplate("v_show_many.php", ['obj'=>$this, 'foreign'=>$table]);
-		}
-		return implode("\r\n",$result);
-	}
-	function get_form_columns() {
-		$result = [];
-		foreach($this->columns as $column) {
-			$result[] = $this->bang->applyTemplate("v_form_list.php", ['obj'=>$this, 'column'=>$column]);
-		}
-
-		return implode("\r\n",$result);
-	}
-	function get_label() {
-		// $result = array_values($this->columns)[2]->name; //TODO Find best column (1st text...)
-		foreach ($this->columns as $column) {
-			if (strpos(strtolower($column->type), "text") !== false || strpos(strtolower($column->type), "char") !== false) {
-				return $column->name;
-			}
-		}
-		return "id";
-	}
-	function get_relations() {
-		$result = [];
-		foreach ($this->belongsTo as $table) {
-			$result[] = $this->bang->applyTemplate("r_belongsTo.php", $table);
-		}
-		foreach ($this->hasMany as $table) {
-			$result[] = $this->bang->applyTemplate("r_hasMany.php", $table);
-		}
-		foreach ($this->belongsToMany as $table) {
-			$result[] = $this->bang->applyTemplate("r_belongsToMany.php", $table);
-		}
-		foreach ($this->hasManyThrough as $tables) {
-			$result[] = $this->bang->applyTemplate("r_hasManyThrough.php", array_combine(['obj', 'obj2'], $tables));
-		}
-		foreach ($this->hasOneThrough as $tables) {
-			$result[] = $this->bang->applyTemplate("r_hasOneThrough.php", array_combine(['obj', 'obj2'], $tables));
-		}
-		return implode("\r\n", $result);
-	}
-	function get_rules() {		
-		$columns = $this->fillableColumns;
-		$result = [];
-		foreach($columns as $col) {
-			$result[] = '		$result[\''.$col->name.'\'] = \'required\';';
-		}
-		return implode("\r\n", $result);
-	}
-	function get_fakeColumns() {		
-		$columns = $this->fillableColumns;
-		$result = [];
-		foreach($columns as $col) {
-			$result[] = '		$result->'.$col->name.' = $faker->word;';
-		}
-		return implode("\r\n", $result);
-	}
-	function get_deleteForeign() {
-		$tables = $this->bang->hasMany($this);
-		$result = [];
-		foreach($tables as $table) {
-			$result[] = "\\App\\$table->model::where('{$this->singular}_id', {$this->singularVar}->id)->delete();";
-		}
-		return implode("\r\n", $result);
 	}
 	function report($width=65) {
 		//║╗╝╚╔═╣╠╬╪╤╧
@@ -285,7 +129,7 @@ class Table {
 		$hr .= "╪".str_repeat("═", 4)."";
 		$hr .= "╣";
 		$result[] = $hr;
-		foreach ($this->columns as $column) {
+		foreach ($this->_columns as $column) {
 			$result[] = $column->report_line();
 		}
 		$hr = "╚".str_repeat("═", $width-30)."";
