@@ -43,6 +43,12 @@ trait Table_Proxies {
 		foreach($this->hasMany as $table) {
 			$result[] = $this->bang->applyTemplate("v_show_many.php", ['obj'=>$this, 'foreign'=>$table]);
 		}
+		foreach($this->belongsToMany as $table) {
+			$result[] = $this->bang->applyTemplate("v_show_many.php", ['obj'=>$this, 'foreign'=>$table]);
+		}
+		// foreach($this->hasManyThrough as $table) {
+		// 	$result[] = $this->bang->applyTemplate("v_show_many.php", ['obj'=>$this, 'foreign'=>$table]);
+		// }
 		return implode("\r\n",$result);
 	}
 	function get_form_columns() {

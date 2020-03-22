@@ -28,18 +28,23 @@ class Bang {
 	}
 	function analyze() {
 		$this->_tables = $this->fetchTables();
+		Table::analyze($this->_tables);
 		// Check for belongsTo and hasMany
-		foreach($this->_tables as $table) {
-			$table->analyze();
-		}
+		// foreach($this->_tables as $table) {
+		// 	$table->analyze();
+		// }
+		// Check for belongsTo
+		// foreach($this->tables as $table) {
+		// 	$table->analyzeBelongsToMany();
+		// }
 		// Check for belongsToMany
-		foreach($this->tables as $table) {
-			$table->analyzeBelongsToMany();
-		}
+		// foreach($this->tables as $table) {
+		// 	$table->analyzeBelongsToMany();
+		// }
 		// Check for hasManyThrough
-		foreach($this->tables as $table) {
-			$table->analyzeHasManyThrough();
-		}
+		// foreach($this->tables as $table) {
+		// 	$table->analyzeHasManyThrough();
+		// }
 		return;
 	}
 	/**

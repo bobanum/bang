@@ -8,103 +8,12 @@ class Table {
 	use GetSet;
 	use Table_Aliases;
 	use Table_Proxies;
-	public $_columns = [];
-	public $belongsTo = [];
-	public $hasMany = [];
-	public $belongsToMany = [];
-	public $hasManyThrough = [];
-	public $hasOneThrough = [];
+	use Table_Analyze;
 	public $messages = [];
 	public $bang = null;
+
 	function __construct() {
 		
-	}
-	function analyze() {
-		// Fetch all the table's columns
-		$stmt = $this->bang->execute("PRAGMA table_info({$this->name})");
-		$columns = $stmt->fetchAll(PDO::FETCH_CLASS, "Bang\Column");
-		$this->_columns = [];
-		foreach ($columns as $column) {
-			$this->_columns[$column->name] = $column;
-			$column->table = $this;
-		}
-
-
-		// Add informations about foreign keys
-		$stmt = $this->bang->execute("PRAGMA foreign_key_list({$this->name})");
-		$foreignKeys = $stmt->fetchAll(PDO::FETCH_OBJ);
-		foreach ($foreignKeys as $foreignKey) {
-			$foreignTable = $this->bang->getTable($foreignKey->table);
-			unset($foreignKey->table);
-			// $this->belongsTo[$foreignTable->name] = $foreignTable;
-			$this->addBelongsTo($foreignTable, true);
-			// $foreignTable->hasMany[$this->name] = $this;
-			$foreignKey->foreignTable = $foreignTable;
-			foreach ($foreignKey as $name=>$info) {
-				$this->_columns[$foreignKey->from]->$name = $info;
-			}
-		} 
-	}
-	function analyzeBelongsToMany() {
-		$tables = array_values($this->belongsTo);
-		for($i = 0, $n = count($tables) - 1; $i < $n; $i += 1) {
-			for($j = $i + 1, $m = count($tables); $j < $m; $j += 1) {
-				$tables[$i]->belongsToMany[$tables[$j]->name] = $tables[$j];
-				$tables[$j]->belongsToMany[$tables[$i]->name] = $tables[$i];
-			}
-		}
-	}
-	function analyzeHasManyThrough() {
-		$a1 = array_values($this->belongsTo);
-		foreach($this->belongsTo as $bt) {
-			foreach($this->hasMany as $hm) {
-				$bt->hasManyThrough[$hm->name] = [$hm, $this];
-				$hm->hasOneThrough[$bt->name] = [$bt, $this];
-			}
-		}
-	}
-	function get_isJunctionTable() {
-		$subs = explode("_",$this->name);
-		// Does the name have 2 parts
-		if (count($subs) !== 2) {
-			return false;
-		}
-		// Is it in alphebetical order
-		if ($subs[0] >= $subs[1]) {
-			return false;
-		}
-		// Does each name corresponds with a table
-		$t0 = $this->bang->getTable($subs[0]);
-		$t1 = $this->bang->getTable($subs[1]);
-		if (!$t0 || !$t1) {
-			return false;
-		}
-		// Do we have a foreign key for each table
-		if (!isset($this->_columns[$t0->foreignKey]) || !isset($this->_columns[$t1->foreignKey])) {
-			return false;
-		}
-		return true;
-	}
-	function addHasMany($table, $complete = true) {
-		if ($table->isJunctionTable) {
-			return;
-		}
-		if (isset($this->hasMany[$table->name])) {
-			return;
-		}
-		$this->hasMany[$table->name] = $table;
-		if ($complete) {
-			$table->addBelongsTo($this, false);
-		}
-	}
-	function addBelongsTo($table, $complete = true) {
-		if (isset($this->belongsTo[$table->name])) {
-			return;
-		}
-		$this->belongsTo[$table->name] = $table;
-		if ($complete) {
-			$table->addHasMany($this, false);
-		}
 	}
 	function get_fillableColumns() {
 		$result = array_filter($this->_columns, function ($col) { 
