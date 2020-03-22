@@ -8,5 +8,7 @@ return <<<EOT
 	<div><a href="{{action('{$obj->model}Controller@edit', {$obj->singularVar})}}">Edit</a></div>
 	<div><a href="{{action('{$obj->model}Controller@delete', {$obj->singularVar})}}">Delete</a></div>
 </div>
+	{$obj->show_many}
+</div>
 @endsection
 EOT;

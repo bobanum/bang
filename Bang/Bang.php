@@ -72,7 +72,14 @@ class Bang {
 		return $result;
 	}
 	function getTable($name) {
-		return $this->tables[$name];
+		if (isset($this->_tables[$name])) {
+			return $this->_tables[$name];
+		}
+		foreach($this->_tables as $table) {
+			if (strtolower($name) === $table->singular) {
+				return $table;
+			}
+		}
 	}
 	function get_junctionTables() {
 		$tables = $this->tables;

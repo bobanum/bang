@@ -14,14 +14,11 @@ class Table {
 	public $hasOneThrough = [];
 	public $messages = [];
 	public $bang = null;
-	function __construct(){
+	function __construct() {
 		
 	}
 	function analyze() {
-		$this->_columns = $this->fetchColumns();
-		// foreach($this->columns as $column) {
-		// 	$column->analyze();
-		// }
+		$this->fetchColumns();
 	}
 	function analyzeBelongsToMany() {
 		$tables = array_values($this->belongsTo);
@@ -41,6 +38,49 @@ class Table {
 			}
 		}
 	}
+	function get_isJunctionTable() {
+		$subs = explode("_",$this->name);
+		// Does the name have 2 parts
+		if (count($subs) !== 2) {
+			return false;
+		}
+		// Is it in alphebetical order
+		if ($subs[0] >= $subs[1]) {
+			return false;
+		}
+		// Does each name corresponds with a table
+		$t0 = $this->bang->getTable($subs[0]);
+		$t1 = $this->bang->getTable($subs[1]);
+		if (!$t0 || !$t1) {
+			return false;
+		}
+		// Do we have a foreign key for each table
+		if (!isset($this->columns[$t0->foreignKey]) || !isset($this->columns[$t1->foreignKey])) {
+			return false;
+		}
+		return true;
+	}
+	function addHasMany($table, $complete = true) {
+		if ($table->isJunctionTable) {
+			return;
+		}
+		if (isset($this->hasMany[$table->name])) {
+			return;
+		}
+		$this->hasMany[$table->name] = $table;
+		if ($complete) {
+			$table->addBelongsTo($this, false);
+		}
+	}
+	function addBelongsTo($table, $complete = true) {
+		if (isset($this->belongsTo[$table->name])) {
+			return;
+		}
+		$this->belongsTo[$table->name] = $table;
+		if ($complete) {
+			$table->addHasMany($this, false);
+		}
+	}
 	function get_columns() {
 		if (!$this->_columns) {
 			$this->_columns = $this->fetchColumns();
@@ -48,31 +88,31 @@ class Table {
 		return $this->_columns;
 	}
 	function fetchColumns() {
+		// Fetch all the table's columns
 		$stmt = $this->bang->execute("PRAGMA table_info({$this->name})");
 		$columns = $stmt->fetchAll(PDO::FETCH_CLASS, "Bang\Column");
-		$result = [];
+		$this->_columns = [];
 		foreach ($columns as $column) {
-			$result[$column->name] = $column;
+			$this->_columns[$column->name] = $column;
 			$column->table = $this;
 		}
-	// 	return $result;
-	// }
-	// function fetchForeignKeys() {
+
+
+		// Add informations about foreign keys
 		$stmt = $this->bang->execute("PRAGMA foreign_key_list({$this->name})");
 		$foreignKeys = $stmt->fetchAll(PDO::FETCH_OBJ);
-		// $result = [];
 		foreach ($foreignKeys as $foreignKey) {
 			$foreignTable = $this->bang->getTable($foreignKey->table);
 			unset($foreignKey->table);
-			$this->belongsTo[$foreignTable->name] = $foreignTable;
-			$foreignTable->hasMany[$this->name] = $this;
+			// $this->belongsTo[$foreignTable->name] = $foreignTable;
+			$this->addBelongsTo($foreignTable, true);
+			// $foreignTable->hasMany[$this->name] = $this;
 			$foreignKey->foreignTable = $foreignTable;
 			//TODO Check pertinence
 			foreach ($foreignKey as $name=>$info) {
 				$result[$foreignKey->from]->$name = $info;
 			}
 		} 
-		return $result;
 	}
 	function get_model() {
 		$result = $this->name;
@@ -82,6 +122,10 @@ class Table {
 		$result = explode("_", $result);
 		$result = array_map('ucfirst', $result);
 		$result = implode("", $result);
+		return $result;
+	}
+	function get_foreignKey() {
+		$result = $this->singular."_id";
 		return $result;
 	}
 	function get_controller() {
@@ -154,6 +198,13 @@ class Table {
 			} else {
 				$result[] = $this->bang->applyTemplate("v_index_list.php", ['obj'=>$this, 'column'=>$column]);
 			}
+		}
+		return implode("\r\n",$result);
+	}
+	function get_show_many() {
+		$result = [];
+		foreach($this->hasMany as $table) {
+			$result[] = $this->bang->applyTemplate("v_show_many.php", ['obj'=>$this, 'foreign'=>$table]);
 		}
 		return implode("\r\n",$result);
 	}
