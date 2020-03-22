@@ -4,10 +4,8 @@ return <<<EOT
 <ul>
     <li><a href=".">Home</a></li>
     @section('nav')
-    <li><a href="#">Fichier</a></li>
-    <li><a href="#">Édition</a></li>
-    <li><a href="#">Affichage</a></li>
-    <li><a href="#">Aide</a></li>
+    <li><a href="#">Home</a></li>
+    {$obj->nav_items}
     @show
 </ul>
 </nav>

@@ -339,7 +339,13 @@ class Bang {
 		$this->messages[] = "• Adding 🗁'{$this->asset_path("images")}'\r\n  to 🗁'{$this->output_path("public")}'";
 		$this->copy_dir($this->asset_path("images"), $this->output_path("public"));
 	}
-	
+	function get_nav_items() {
+		$result = [];
+		foreach($this->_tables as $table) {
+			$result[] = $this->applyTemplate("v_layout_nav_item.php", ['obj'=>$table]);
+		}
+		return implode("\r\n",$result);
+	}
 	/**
 	 * Executes the processing of the views
 	 */
