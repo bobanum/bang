@@ -1,7 +1,7 @@
 <?php
-namespace Bang;
+namespace Bang\Table;
 
-trait Table_Aliases {
+trait Aliases {
 	function get_model() {
 		$result = $this->name;
 		if (substr($result, -1) === "s") {

@@ -1,5 +1,6 @@
 <?php
 error_reporting(E_ALL);
+include_once(__DIR__."/../../autoload.php");
 header("content-type: text/plain");
 // GIST https://gist.github.com/bobanum/5051442136a2ff081ea714ac918d6a51
 //MODIFIÉ
@@ -103,17 +104,13 @@ if (isset($argc)) {
 }else {
     //TEMP:
     // $db = "C:/Users/bo_ba/Desktop/recettesbang/database/resto.sqlite";
-    $db = "monde.sqlite";
+    $db = __DIR__."/../../monde.sqlite";
     // $db = "C:/Users/bo_ba/Desktop/chinook/database/chinook.sqlite";
 
 }
 
-
-spl_autoload_register(function ($class) {
-    include '' . $class . '.php';
-});
-
 $path_db = $db;
 
-$bang = new \Bang\Bang($path_db);
-$bang->go();
+// $bang = new Bang\App($path_db);
+// $bang->go();
+Bang\App::run($path_db);

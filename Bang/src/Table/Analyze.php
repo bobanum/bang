@@ -1,8 +1,8 @@
 <?php
-namespace Bang;
+namespace Bang\Table;
 use PDO;
 
-trait Table_Analyze {
+trait Analyze {
 	public $_columns = [];
 	public $belongsTo = [];
 	public $hasMany = [];
@@ -40,7 +40,7 @@ trait Table_Analyze {
 	}
 	function fetchColumns() {
 		// Fetch all the table's columns
-		$stmt = $this->bang->execute("PRAGMA table_info({$this->name})");
+		$stmt = $this->db->execute("PRAGMA table_info({$this->name})");
 		$columns = $stmt->fetchAll(PDO::FETCH_CLASS, "Bang\Column");
 		$this->_columns = [];
 		foreach ($columns as $column) {
@@ -51,10 +51,10 @@ trait Table_Analyze {
 	}
 	function analyzeBelongsTo() {
 		// Add informations about foreign keys
-		$stmt = $this->bang->execute("PRAGMA foreign_key_list({$this->name})");
+		$stmt = $this->db->execute("PRAGMA foreign_key_list({$this->name})");
 		$foreignKeys = $stmt->fetchAll(PDO::FETCH_OBJ);
 		foreach ($foreignKeys as $foreignKey) {
-			$foreignTable = $this->bang->getTable($foreignKey->table);
+			$foreignTable = $this->db->getTable($foreignKey->table);
 			unset($foreignKey->table);
 			$this->addBelongsTo($foreignTable);
 			$foreignKey->foreignTable = $foreignTable;
@@ -104,8 +104,8 @@ trait Table_Analyze {
 			return false;
 		}
 		// Does each name corresponds with a table
-		$tableLeft = $this->bang->getTable($subs[0]);
-		$tableRight = $this->bang->getTable($subs[1]);
+		$tableLeft = $this->db->getTable($subs[0]);
+		$tableRight = $this->db->getTable($subs[1]);
 		if (!$tableLeft || !$tableRight) {
 			return false;
 		}
@@ -120,7 +120,7 @@ trait Table_Analyze {
 	}
 	function addBelongsTo($table) {
 		if (isset($this->belongsTo[$table->name])) {
-			throw new Exception('Already added');
+			throw new \Exception('Already added');
 		}
 		$this->belongsTo[$table->name] = $table;
 	}

@@ -1,7 +1,7 @@
 <?php
-namespace Bang;
+namespace Bang\Table;
 
-trait Table_Proxies {
+trait Proxies {
 	function get_forcedName() {
 		if (substr($this->name, -1) === "s") {
 			return "";
