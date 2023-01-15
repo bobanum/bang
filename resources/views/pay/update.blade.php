@@ -1,5 +1,3 @@
-@extends('layout.index', ['title'=>'pay : '.$pay->nom])
-@section('content')
 <h1>{{$pay->nom}}</h1>
 <div class="columns">
 	@component('layout.column.show', ['label'=>'id'])
@@ -59,14 +57,4 @@
 @component('layout.column.show', ['label'=>'moisChaudsTemp'])
 {{$pay->moisChaudsTemp}}
 @endcomponent
-	<div><a href="{{action('PayController@edit', $pay)}}">Edit</a></div>
-	<div><a href="{{action('PayController@delete', $pay)}}">Delete</a></div>
 </div>
-	@component('layout.column.show', ['label'=>'provinces'])
-@include('province.list', ['provinces' => $pay->provinces])
-@endcomponent
-@component('layout.column.show', ['label'=>'villes'])
-@include('ville.list', ['villes' => $pay->villes])
-@endcomponent
-</div>
-@endsection

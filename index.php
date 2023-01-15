@@ -103,8 +103,8 @@ if (isset($argc)) {
 }else {
     //TEMP:
     // $db = "C:/Users/bo_ba/Desktop/recettesbang/database/resto.sqlite";
-    // $db = "C:/Users/bo_ba/Desktop/rebang/database/monde.sqlite";
-    $db = "C:/Users/bo_ba/Desktop/chinook/database/chinook.sqlite";
+    $db = "monde.sqlite";
+    // $db = "C:/Users/bo_ba/Desktop/chinook/database/chinook.sqlite";
 
 }
 

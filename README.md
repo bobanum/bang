@@ -1,15 +1,24 @@
-# Bang
-Turns a SQLite database into a Laravel application.
+# bang
 
-## Installation
-1. Put file `bang.phar` at the root of Laravel app
+## Project setup
+```
+npm install
+```
 
-## Usage
-1. Put SQLite database in  `database` directory of app.
-1. Run `bang.phar` (`php bang.phar`)
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
 
-## Plans
-- Support for more database types
-- Installation of Laravel if needed
-- More complete application
-- More flexibility (through bang.phar CLI)
+### Compiles and minifies for production
+```
+npm run build
+```
+
+### Lints and fixes files
+```
+npm run lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).

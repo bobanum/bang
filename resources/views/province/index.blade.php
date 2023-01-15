@@ -1,13 +1,6 @@
-@extends('layout.index')
+@extends('layout.index', ['title'=>'List of provinces'])
 @section('content')
 <h1>Liste des provinces</h1>
-@if(count($provinces) > 0)
-<div class="provinces">
-	@foreach($provinces as $province)
-	<div><a href="{{action('ProvinceController@show', $province)}}">{{$province->nom}}</a></div>
-	@endforeach
-</div>
-@else
-<div>Il n'y a aucun provinces.</div>
-@endif
+@include('province.list')
+<a href="{{action('ProvinceController@create')}}">New province</a>
 @endsection
